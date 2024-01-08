@@ -219,8 +219,6 @@ class _MapViewState extends State<MapView> {
       double northEastLatitude = maxy;
       double northEastLongitude = maxx;
 
-      // Accommodate the two locations within the
-      // camera view of the map
       mapController.animateCamera(
         CameraUpdate.newLatLngBounds(
           LatLngBounds(
@@ -231,22 +229,18 @@ class _MapViewState extends State<MapView> {
         ),
       );
 
-      // Calculating the distance between the start and the end positions
-      // with a straight path, without considering any route
-      // double distanceInMeters = await Geolocator().bearingBetween(
-      //   startCoordinates.latitude,
-      //   startCoordinates.longitude,
-      //   destinationCoordinates.latitude,
-      //   destinationCoordinates.longitude,
-      // );
+      double distanceInMeters = await Geolocator.bearingBetween(
+        startLatitude,
+        startLongitude,
+        destinationLatitude,
+        destinationLongitude,
+      );
 
       await _createPolylines(startLatitude, startLongitude, destinationLatitude,
           destinationLongitude);
 
       double totalDistance = 0.0;
 
-      // Calculating the total distance by adding the distance
-      // between small segments
       for (int i = 0; i < polylineCoordinates.length - 1; i++) {
         totalDistance += _coordinateDistance(
           polylineCoordinates[i].latitude,
@@ -257,9 +251,9 @@ class _MapViewState extends State<MapView> {
       }
 
       setState(() {
-        _placeDistance = totalDistance.toStringAsFixed(2);
+        _placeDistance = distanceInMeters.toStringAsFixed(2);
         if (kDebugMode) {
-          print('DISTANCE: $_placeDistance km');
+          print('DISTANCE: $distanceInMeters km');
         }
       });
 
@@ -272,8 +266,6 @@ class _MapViewState extends State<MapView> {
     return false;
   }
 
-  // Formula for calculating distance between two coordinates
-  // https://stackoverflow.com/a/54138876/11910277
   double _coordinateDistance(lat1, lon1, lat2, lon2) {
     var p = 0.017453292519943295;
     var c = cos;
@@ -283,7 +275,6 @@ class _MapViewState extends State<MapView> {
     return 12742 * asin(sqrt(a));
   }
 
-  // Create the polylines for showing the route between two places
   _createPolylines(
       double startLatitude,
       double startLongitude,
@@ -393,8 +384,6 @@ class _MapViewState extends State<MapView> {
                 ),
               ),
             ),
-            // Show the place input fields & button for
-            // showing the route
             SafeArea(
               child: Align(
                 alignment: Alignment.topCenter,
